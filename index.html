@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DIGIY RESTO - Dashboard Admin</title>
+  <style>
+    :root{--gold:#D4AF37;--bg:#0f0f10;--card:#17181a;--ok:#4CAF50;--danger:#F44336;--info:#2196F3;--muted:#9aa0a6}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:var(--bg);color:#fff;font-family:Arial,system-ui,sans-serif;min-height:100vh}
+    .container{max-width:1200px;margin:0 auto;padding:20px}
+    .header{background:linear-gradient(135deg,#1b1b1d,#111);border:2px solid var(--gold);border-radius:16px;padding:20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+    h1{color:var(--gold);margin-bottom:6px;font-size:24px}
+    .card{background:var(--card);border:1px solid #2a2b2f;border-radius:14px;padding:20px;margin-bottom:20px}
+    .field-group{margin-bottom:16px}
+    label{display:block;font-size:12.5px;color:#aaa;margin-bottom:6px;font-weight:700}
+    input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#0e0e11;color:#fff;font-size:14px}
+    .btn{display:inline-flex;gap:8px;align-items:center;padding:12px 18px;border-radius:10px;border:none;font-weight:800;cursor:pointer;font-size:14px;margin-right:8px;margin-bottom:8px}
+    .btn.ok{background:var(--ok);color:#fff}
+    .btn.gold{background:var(--gold);color:#111}
+    .btn.danger{background:var(--danger);color:#fff}
+    .btn.info{background:var(--info);color:#fff}
+    .btn.ghost{background:#0e0e11;border:1px solid #333;color:#fff}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .badge{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800;display:inline-block}
+    .badge.active{background:#163a1a;color:#3ddc84;border:1px solid #1f6a2b}
+    .badge.expired{background:#3a1616;color:#ff6b6b;border:1px solid#7a2323}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-top:20px}
+    .client-card{background:#1a1a1c;border:1px solid #2a2b2f;border-radius:12px;padding:16px;transition:transform .2s;cursor:pointer}
+    .client-card:hover{transform:translateY(-2px);border-color:var(--gold)}
+    .client-card h3{color:var(--gold);margin-bottom:8px;font-size:18px}
+    .client-info{font-size:13px;color:#aaa;margin-bottom:6px}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
+    .stat-card{background:linear-gradient(135deg,#1a1a1c,#17181a);border:1px solid #2a2b2f;border-radius:12px;padding:20px;text-align:center}
+    .stat-value{font-size:32px;font-weight:900;color:var(--gold);margin-bottom:8px}
+    .stat-label{font-size:14px;color:#aaa}
+    #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .login-box{background:var(--card);border:2px solid var(--gold);border-radius:16px;padding:40px;max-width:400px;width:100%;margin:20px}
+    .hidden{display:none!important}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+    .modal-content{background:var(--card);border:2px solid var(--gold);border-radius:16px;padding:30px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto}
+    .tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid #2a2b2f}
+    .tab{padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;font-weight:700;transition:all .2s}
+    .tab.active{border-bottom-color:var(--gold);color:var(--gold)}
+    .hint{font-size:12px;color:var(--muted);margin-top:4px}
+    .alert{padding:12px 16px;border-radius:10px;margin-bottom:16px;border-left:4px solid;font-size:14px}
+    .alert.danger{background:rgba(244,67,54,0.15);border-color:var(--danger);color:#ff8a80}
+    .alert.info{background:rgba(33,150,243,0.15);border-color:var(--info);color:#82b1ff}
+  </style>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <h1 style="text-align:center;margin-bottom:30px">🔐 DIGIY RESTO Admin</h1>
+      
+      <!-- Info sécurité -->
+      <div class="alert info" style="margin-bottom:20px">
+        <strong>🛡️ Accès restreint</strong><br>
+        Seuls les admins autorisés peuvent se connecter.
+      </div>
+
+      <div class="field-group">
+        <label>📧 Email</label>
+        <input type="email" id="loginEmail" placeholder="admin@digiy.com" autocomplete="username">
+      </div>
+      <div class="field-group">
+        <label>🔑 Mot de passe</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn gold" id="btnLogin" style="width:100%;justify-content:center">Se connecter</button>
+      <div id="loginError" class="alert danger" style="margin-top:12px;display:none"></div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard -->
+  <div id="dashboard" class="hidden">
+    <div class="container">
+      <div class="header">
+        <div>
+          <h1>🍽️ DIGIY RESTO - Dashboard Admin</h1>
+          <p style="color:#aaa;font-size:14px">Gestion de tous vos clients restaurants</p>
+        </div>
+        <div>
+          <span style="color:#aaa;margin-right:16px" id="adminEmail"></span>
+          <button class="btn danger" id="btnLogout">🚪 Déconnexion</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-label">Clients Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statActive">0</div>
+          <div class="stat-label">Actifs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statExpired">0</div>
+          <div class="stat-label">Expirés</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statRevenue">0</div>
+          <div class="stat-label">CA Mensuel (FCFA)</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="card">
+        <div class="tabs">
+          <div class="tab active" data-tab="clients">📋 Mes Clients</div>
+          <div class="tab" data-tab="create">➕ Nouveau Client</div>
+        </div>
+
+        <!-- Tab: Liste des clients -->
+        <div id="tabClients">
+          <div style="margin-bottom:16px">
+            <input type="text" id="searchClients" placeholder="🔍 Rechercher un client..." style="max-width:400px">
+          </div>
+          <div class="grid" id="clientsList"></div>
+        </div>
+
+        <!-- Tab: Créer client -->
+        <div id="tabCreate" class="hidden">
+          <form id="formNewClient">
+            <div class="row">
+              <div class="field-group" style="flex:1">
+                <label>🏪 Nom du restaurant *</label>
+                <input type="text" id="newShopName" required>
+              </div>
+              <div class="field-group" style="flex:1">
+                <label>👤 Propriétaire *</label>
+                <input type="text" id="newOwnerName" required>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field-group" style="flex:1">
+                <label>📱 Téléphone *</label>
+                <input type="tel" id="newPhone" placeholder="+221771234567" required>
+                <div class="hint">Format international avec +</div>
+              </div>
+              <div class="field-group" style="flex:1">
+                <label>📧 Email</label>
+                <input type="email" id="newEmail">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field-group" style="flex:1">
+                <label>📍 Adresse</label>
+                <input type="text" id="newAddress">
+              </div>
+              <div class="field-group" style="flex:1">
+                <label>📦 Plan</label>
+                <select id="newPlan">
+                  <option value="standard">Standard</option>
+                  <option value="pro">Pro</option>
+                  <option value="lite">Lite</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field-group" style="flex:1">
+                <label>🔢 Nombre de licences</label>
+                <select id="newLicenses">
+                  <option value="1">1 licence (25K/mois)</option>
+                  <option value="2">2 licences (35K/mois)</option>
+                  <option value="3">3 licences (45K/mois)</option>
+                  <option value="4">4 licences (55K/mois)</option>
+                </select>
+              </div>
+              <div class="field-group" style="flex:1">
+                <label>📅 Date d'expiration</label>
+                <input type="date" id="newExpiry">
+                <div class="hint">Laisse vide pour 1 an auto</div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field-group" style="flex:1">
+                <label>🧾 TVA (%)</label>
+                <input type="number" id="newVAT" value="0" min="0">
+              </div>
+              <div class="field-group" style="flex:1">
+                <label>💁 Service (%)</label>
+                <input type="number" id="newService" value="0" min="0">
+              </div>
+            </div>
+
+            <button type="submit" class="btn gold" style="margin-top:16px">✅ Créer le client</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal détails client -->
+  <div id="modalClient" class="modal hidden">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2 id="modalClientName" style="color:var(--gold);margin:0"></h2>
+        <button class="btn ghost" id="btnCloseModal">✖️</button>
+      </div>
+      <div id="modalClientContent"></div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    /* ========================================
+       🔒 CONFIGURATION SÉCURITÉ
+       ======================================== */
+    
+    // ⚠️ LISTE DES ADMINS AUTORISÉS - MODIFIER ICI
+    const AUTHORIZED_ADMINS = [
+      'admin@digiy.com',
+      'baptiste@digiy.com',
+      'baptistejb24@gmail.com'  // ✅ Baptiste - Email principal
+    ];
+
+    /* ========================================
+       🔥 FIREBASE CONFIG
+       ======================================== */
+    
+    // ⚠️ REMPLACE PAR TES VRAIES CONFIGS FIREBASE
+    const firebaseConfig = {
+      apiKey: "TON_API_KEY",
+      authDomain: "TON_PROJECT.firebaseapp.com",
+      projectId: "TON_PROJECT_ID",
+      storageBucket: "TON_PROJECT.appspot.com",
+      messagingSenderId: "TON_SENDER_ID",
+      appId: "TON_APP_ID"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    /* ========================================
+       🛠️ HELPERS
+       ======================================== */
+    
+    const el = id => document.getElementById(id);
+    const show = id => el(id).classList.remove('hidden');
+    const hide = id => el(id).classList.add('hidden');
+
+    function showError(message) {
+      el('loginError').textContent = message;
+      show('loginError');
+    }
+
+    function hideError() {
+      hide('loginError');
+    }
+
+    function randomToken(length = 8) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    function calcPricing(licenses) {
+      const basePrices = {
+        1: { entry: 50000, monthly: 25000 },
+        2: { entry: 70000, monthly: 35000 },
+        3: { entry: 90000, monthly: 45000 },
+        4: { entry: 110000, monthly: 55000 }
+      };
+      return basePrices[licenses] || basePrices[1];
+    }
+
+    function computeStatus(startDate, expiryDate) {
+      const now = new Date();
+      const expiry = new Date(expiryDate);
+      return expiry >= now ? 'active' : 'expired';
+    }
+
+    /* ========================================
+       🔐 AUTHENTIFICATION SÉCURISÉE
+       ======================================== */
+    
+    // Vérifier l'état de connexion au chargement
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        // Vérifier si l'utilisateur est autorisé
+        if (!AUTHORIZED_ADMINS.includes(user.email)) {
+          console.warn('🚫 Accès refusé - Email non autorisé:', user.email);
+          await auth.signOut();
+          showError('❌ Accès refusé : vous n\'avez pas les droits admin');
+          show('loginScreen');
+          hide('dashboard');
+          return;
+        }
+
+        // Utilisateur autorisé
+        console.log('✅ Admin connecté:', user.email);
+        el('adminEmail').textContent = user.email;
+        hide('loginScreen');
+        show('dashboard');
+        await loadClients();
+      } else {
+        show('loginScreen');
+        hide('dashboard');
+      }
+    });
+
+    // Connexion
+    el('btnLogin').onclick = async () => {
+      const email = el('loginEmail').value.trim();
+      const password = el('loginPassword').value.trim();
+
+      if (!email || !password) {
+        showError('❌ Email et mot de passe requis');
+        return;
+      }
+
+      // Vérifier AVANT la connexion si l'email est autorisé
+      if (!AUTHORIZED_ADMINS.includes(email)) {
+        showError('❌ Accès refusé : cet email n\'est pas autorisé');
+        return;
+      }
+
+      hideError();
+      el('btnLogin').textContent = 'Connexion...';
+      el('btnLogin').disabled = true;
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        // onAuthStateChanged va gérer la suite
+      } catch (error) {
+        console.error('Erreur connexion:', error);
+        
+        let message = '❌ Erreur de connexion';
+        if (error.code === 'auth/user-not-found') {
+          message = '❌ Utilisateur introuvable';
+        } else if (error.code === 'auth/wrong-password') {
+          message = '❌ Mot de passe incorrect';
+        } else if (error.code === 'auth/invalid-email') {
+          message = '❌ Email invalide';
+        } else if (error.code === 'auth/too-many-requests') {
+          message = '❌ Trop de tentatives. Réessaye plus tard.';
+        }
+        
+        showError(message);
+      } finally {
+        el('btnLogin').textContent = 'Se connecter';
+        el('btnLogin').disabled = false;
+      }
+    };
+
+    // Permettre connexion avec Enter
+    el('loginPassword').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        el('btnLogin').click();
+      }
+    });
+
+    // Déconnexion
+    el('btnLogout').onclick = async () => {
+      if (confirm('🚪 Voulez-vous vraiment vous déconnecter ?')) {
+        await auth.signOut();
+      }
+    };
+
+    /* ========================================
+       📊 GESTION CLIENTS
+       ======================================== */
+    
+    let allClients = [];
+
+    async function loadClients() {
+      try {
+        const snapshot = await db.collection('restaurants').orderBy('createdAt', 'desc').get();
+        
+        allClients = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        renderClients(allClients);
+        updateStats(allClients);
+      } catch (error) {
+        console.error('Erreur chargement clients:', error);
+        alert('❌ Erreur lors du chargement des clients');
+      }
+    }
+
+    function renderClients(clients) {
+      const container = el('clientsList');
+      
+      if (clients.length === 0) {
+        container.innerHTML = '<p style="color:#aaa;text-align:center;padding:40px">Aucun client pour le moment</p>';
+        return;
+      }
+
+      container.innerHTML = clients.map(c => {
+        const status = computeStatus(c.startDate, c.expiryDate);
+        const pricing = calcPricing(c.licenses || 1);
+        
+        return `
+          <div class="client-card" onclick="openClientModal('${c.id}')">
+            <h3>${c.name}</h3>
+            <div class="client-info">
+              <div>👤 ${c.owner}</div>
+              <div>📱 ${c.tel}</div>
+              <div>🎫 ${c.token}</div>
+              <div style="margin-top:8px">
+                <span class="badge ${status}">${status === 'active' ? '✅ Actif' : '⛔ Expiré'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateStats(clients) {
+      const total = clients.length;
+      const active = clients.filter(c => computeStatus(c.startDate, c.expiryDate) === 'active').length;
+      const expired = total - active;
+      
+      const revenue = clients.reduce((sum, c) => {
+        const pricing = calcPricing(c.licenses || 1);
+        return sum + (computeStatus(c.startDate, c.expiryDate) === 'active' ? pricing.monthly : 0);
+      }, 0);
+
+      el('statTotal').textContent = total;
+      el('statActive').textContent = active;
+      el('statExpired').textContent = expired;
+      el('statRevenue').textContent = revenue.toLocaleString();
+    }
+
+    // Recherche
+    el('searchClients').oninput = (e) => {
+      const search = e.target.value.toLowerCase();
+      const filtered = allClients.filter(c =>
+        c.name.toLowerCase().includes(search) ||
+        c.owner.toLowerCase().includes(search) ||
+        c.token.toLowerCase().includes(search) ||
+        c.tel.includes(search)
+      );
+      renderClients(filtered);
+    };
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.onclick = () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        const tabName = tab.dataset.tab;
+        hide('tabClients');
+        hide('tabCreate');
+        show(`tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+      };
+    });
+
+    // Create client
+    el('formNewClient').onsubmit = async (e) => {
+      e.preventDefault();
+      
+      const name = el('newShopName').value.trim();
+      const owner = el('newOwnerName').value.trim();
+      const tel = el('newPhone').value.trim();
+      const email = el('newEmail').value.trim();
+      const address = el('newAddress').value.trim();
+      const plan = el('newPlan').value;
+      const licenses = parseInt(el('newLicenses').value);
+      const vat = parseInt(el('newVAT').value) || 0;
+      const service = parseInt(el('newService').value) || 0;
+      
+      const startDate = new Date().toISOString().split('T')[0];
+      let expiryDate = el('newExpiry').value;
+      if(!expiryDate){
+        const d = new Date();
+        d.setFullYear(d.getFullYear() + 1);
+        expiryDate = d.toISOString().split('T')[0];
+      }
+
+      const token = randomToken(8);
+      const pricing = calcPricing(licenses);
+      const status = computeStatus(startDate, expiryDate);
+
+      const clientData = {
+        token,
+        name,
+        owner,
+        tel,
+        email: email || '',
+        address: address || '',
+        plan,
+        licenses,
+        startDate,
+        expiryDate,
+        status,
+        vat,
+        service,
+        pricing: {
+          entry: pricing.entry,
+          monthly: pricing.monthly
+        },
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: auth.currentUser.email,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy: auth.currentUser.email
+      };
+
+      try {
+        await db.collection('restaurants').doc(token).set(clientData);
+        alert(`✅ Client créé !\n\nTOKEN: ${token}\nURL: ${window.location.origin}/resto.html?t=${token}`);
+        
+        // Reset form
+        el('formNewClient').reset();
+        
+        // Switch to clients tab
+        document.querySelector('.tab[data-tab="clients"]').click();
+        
+        // Reload clients
+        await loadClients();
+      } catch(error) {
+        console.error('Erreur création client:', error);
+        alert('❌ Erreur lors de la création. Vérifie la console.');
+      }
+    };
+
+    // Modal client
+    function openClientModal(clientId){
+      const client = allClients.find(c => c.id === clientId);
+      if(!client) return;
+
+      el('modalClientName').textContent = client.name;
+      
+      const status = computeStatus(client.startDate, client.expiryDate);
+      const pricing = calcPricing(client.licenses || 1);
+      const url = `${window.location.origin}/resto.html?t=${client.token}`;
+
+      el('modalClientContent').innerHTML = `
+        <div style="background:#0a0a0c;padding:16px;border-radius:10px;margin-bottom:16px">
+          <div style="margin-bottom:8px"><strong>🎫 TOKEN:</strong> ${client.token}</div>
+          <div style="margin-bottom:8px"><strong>🔗 URL:</strong> <a href="${url}" target="_blank" style="color:var(--gold)">${url}</a></div>
+          <button class="btn info" onclick="copyToClipboard('${url}')">📋 Copier URL</button>
+          <button class="btn gold" onclick="copyToClipboard('${client.token}')">📋 Copier TOKEN</button>
+        </div>
+        
+        <div style="margin-bottom:16px">
+          <strong>👤 Propriétaire:</strong> ${client.owner}<br>
+          <strong>📱 Téléphone:</strong> ${client.tel}<br>
+          <strong>📧 Email:</strong> ${client.email || '-'}<br>
+          <strong>📍 Adresse:</strong> ${client.address || '-'}<br>
+          <strong>📦 Plan:</strong> ${client.plan}<br>
+          <strong>🔢 Licences:</strong> ${client.licenses}<br>
+          <strong>💰 Tarif:</strong> ${pricing.monthly.toLocaleString()} FCFA/mois<br>
+          <strong>📅 Début:</strong> ${new Date(client.startDate).toLocaleDateString('fr-FR')}<br>
+          <strong>📅 Expiration:</strong> ${new Date(client.expiryDate).toLocaleDateString('fr-FR')}<br>
+          <strong>💼 Statut:</strong> <span class="badge ${status}">${status === 'active' ? '✅ Actif' : '⛔ Expiré'}</span>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn danger" onclick="deleteClient('${client.id}')">🗑️ Supprimer</button>
+          <button class="btn gold" onclick="renewClient('${client.id}')">🔄 Renouveler 1 an</button>
+        </div>
+      `;
+
+      show('modalClient');
+    }
+
+    el('btnCloseModal').onclick = () => hide('modalClient');
+
+    // Copy to clipboard
+    function copyToClipboard(text){
+      navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Copié !');
+      }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        alert('✅ Copié !');
+      });
+    }
+
+    // Delete client
+    async function deleteClient(clientId){
+      if(!confirm('⚠️ Supprimer ce client ? Cette action est irréversible !')) return;
+      
+      try {
+        await db.collection('restaurants').doc(clientId).delete();
+        alert('✅ Client supprimé');
+        hide('modalClient');
+        await loadClients();
+      } catch(error) {
+        console.error('Erreur suppression:', error);
+        alert('❌ Erreur lors de la suppression');
+      }
+    }
+
+    // Renew client
+    async function renewClient(clientId){
+      const client = allClients.find(c => c.id === clientId);
+      if(!client) return;
+
+      const newExpiry = new Date();
+      newExpiry.setFullYear(newExpiry.getFullYear() + 1);
+      const expiryDate = newExpiry.toISOString().split('T')[0];
+
+      try {
+        await db.collection('restaurants').doc(clientId).update({
+          expiryDate,
+          status: 'active',
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedBy: auth.currentUser.email
+        });
+        alert('✅ Abonnement renouvelé pour 1 an !');
+        hide('modalClient');
+        await loadClients();
+      } catch(error) {
+        console.error('Erreur renouvellement:', error);
+        alert('❌ Erreur lors du renouvellement');
+      }
+    }
+
+    // Auto-expiry date
+    el('newExpiry').onchange = function(){
+      if(!this.value){
+        const d = new Date();
+        d.setFullYear(d.getFullYear() + 1);
+        this.value = d.toISOString().split('T')[0];
+      }
+    };
+
+    /* ========================================
+       🚀 LOGS DE SÉCURITÉ
+       ======================================== */
+    
+    console.log('🛡️ DIGIY RESTO Admin Dashboard - Version Sécurisée');
+    console.log('✅ Authentification Firebase activée');
+    console.log('✅ Whitelist admins configurée');
+    console.log('⚠️ N\'oublie pas de configurer les règles Firestore !');
+  </script>
+</body>
+</html>
