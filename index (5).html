@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIGIY DRIVER - Dashboard Chauffeur</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .driver-select {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .status-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .status-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .gps-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .gps-active {
+            background: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        .gps-inactive {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 DIGIY DRIVER</h1>
+        <p class="subtitle">Dashboard Chauffeur - 0% Commission</p>
+
+        <div class="driver-select">
+            <label for="driverId">Sélectionnez votre profil :</label>
+            <select id="driverId">
+                <option value="">-- Choisir un chauffeur --</option>
+                <option value="MAMADOU2025">Mamadou Diallo</option>
+                <option value="IBRAHIMA8756">Ibrahima Seck</option>
+                <option value="OUSMANE3421">Ousmane Fall</option>
+            </select>
+        </div>
+
+        <div id="driverInfo" style="display: none;">
+            <label>Statut :</label>
+            <div class="status">
+                <button class="status-btn" data-status="available">✅ Disponible</button>
+                <button class="status-btn" data-status="busy">🚕 Occupé</button>
+                <button class="status-btn" data-status="offline">⏸️ Hors ligne</button>
+            </div>
+
+            <button id="shareGPS">📍 PARTAGER MA POSITION GPS</button>
+
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">GPS :</span>
+                    <span class="info-value">
+                        <span class="gps-indicator gps-inactive" id="gpsIndicator"></span>
+                        <span id="gpsStatus">Inactif</span>
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Position :</span>
+                    <span class="info-value" id="position">--</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Dernière MAJ :</span>
+                    <span class="info-value" id="lastUpdate">--</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Statut actuel :</span>
+                    <span class="info-value" id="currentStatus">offline</span>
+                </div>
+            </div>
+
+            <div id="alertBox"></div>
+        </div>
+
+        <div class="footer">
+            🇸🇳 DIGIYLYFE - VTC 0% Commission<br>
+            Fait avec ❤️ au Sénégal
+        </div>
+    </div>
+
+    <script>
+        // ✅ URL API CORRIGÉE - Pointe vers Render
+        const API_URL = 'https://digiy-driver-api-1.onrender.com';
+        let gpsInterval = null;
+        let selectedDriver = null;
+
+        // Sélection du chauffeur
+        document.getElementById('driverId').addEventListener('change', async (e) => {
+            selectedDriver = e.target.value;
+            
+            if (selectedDriver) {
+                document.getElementById('driverInfo').style.display = 'block';
+                await loadDriverProfile();
+            } else {
+                document.getElementById('driverInfo').style.display = 'none';
+                stopGPSSharing();
+            }
+        });
+
+        // Charger le profil du chauffeur
+        async function loadDriverProfile() {
+            try {
+                const response = await fetch(`${API_URL}/api/driver/${selectedDriver}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('currentStatus').textContent = data.driver.status;
+                    updateStatusButtons(data.driver.status);
+                    showAlert('Profil chargé avec succès ! 🎉', 'success');
+                } else {
+                    showAlert('Chauffeur non trouvé. Contactez l\'administrateur.', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur chargement profil:', error);
+                showAlert('Erreur de connexion. Vérifiez votre internet.', 'error');
+            }
+        }
+
+        // Gestion des boutons de statut
+        document.querySelectorAll('.status-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const status = this.dataset.status;
+                await updateStatus(status);
+            });
+        });
+
+        // Mettre à jour le statut
+        async function updateStatus(status) {
+            if (!selectedDriver) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/driver/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        driverId: selectedDriver,
+                        status: status
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateStatusButtons(status);
+                    document.getElementById('currentStatus').textContent = status;
+                    showAlert(`Statut changé : ${status} ✅`, 'success');
+                } else {
+                    showAlert('Erreur lors du changement de statut', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur changement statut:', error);
+                showAlert('Erreur de connexion', 'error');
+            }
+        }
+
+        // Mettre à jour l'affichage des boutons de statut
+        function updateStatusButtons(activeStatus) {
+            document.querySelectorAll('.status-btn').forEach(btn => {
+                if (btn.dataset.status === activeStatus) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // Partager la position GPS
+        document.getElementById('shareGPS').addEventListener('click', function() {
+            if (gpsInterval) {
+                stopGPSSharing();
+            } else {
+                startGPSSharing();
+            }
+        });
+
+        // Démarrer le partage GPS
+        function startGPSSharing() {
+            if (!selectedDriver) {
+                showAlert('Sélectionnez d\'abord votre profil', 'error');
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                showAlert('La géolocalisation n\'est pas supportée par votre appareil', 'error');
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    updateGPSStatus(true);
+                    sendGPSUpdate(position.coords.latitude, position.coords.longitude);
+                    
+                    // Mise à jour toutes les 30 secondes
+                    gpsInterval = setInterval(() => {
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => sendGPSUpdate(pos.coords.latitude, pos.coords.longitude),
+                            handleGPSError
+                        );
+                    }, 30000);
+
+                    document.getElementById('shareGPS').textContent = '⏹️ ARRÊTER LE PARTAGE GPS';
+                    showAlert('Partage GPS activé ! Position mise à jour toutes les 30s 📍', 'success');
+                },
+                handleGPSError
+            );
+        }
+
+        // Arrêter le partage GPS
+        function stopGPSSharing() {
+            if (gpsInterval) {
+                clearInterval(gpsInterval);
+                gpsInterval = null;
+                updateGPSStatus(false);
+                document.getElementById('shareGPS').textContent = '📍 PARTAGER MA POSITION GPS';
+                showAlert('Partage GPS arrêté', 'info');
+            }
+        }
+
+        // ✅ FONCTION CORRIGÉE - Envoyer la position GPS à l'API
+        async function sendGPSUpdate(lat, lng) {
+            try {
+                const response = await fetch(`${API_URL}/api/driver/location`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        driverId: selectedDriver,
+                        latitude: lat,
+                        longitude: lng
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('position').textContent = 
+                        `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    document.getElementById('lastUpdate').textContent = 
+                        new Date().toLocaleTimeString('fr-FR');
+                } else {
+                    console.error('Erreur API GPS:', data);
+                }
+            } catch (error) {
+                console.error('Erreur envoi GPS:', error);
+            }
+        }
+
+        // Gérer les erreurs GPS
+        function handleGPSError(error) {
+            let message = 'Erreur GPS';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = 'Permission GPS refusée. Activez la géolocalisation dans les paramètres de votre téléphone.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = 'Position GPS indisponible. Vérifiez que le GPS est activé.';
+                    break;
+                case error.TIMEOUT:
+                    message = 'Délai GPS dépassé. Réessayez.';
+                    break;
+            }
+            showAlert(message, 'error');
+            stopGPSSharing();
+        }
+
+        // Mettre à jour le statut GPS visuel
+        function updateGPSStatus(active) {
+            const indicator = document.getElementById('gpsIndicator');
+            const status = document.getElementById('gpsStatus');
+            
+            if (active) {
+                indicator.classList.remove('gps-inactive');
+                indicator.classList.add('gps-active');
+                status.textContent = 'Actif';
+            } else {
+                indicator.classList.remove('gps-active');
+                indicator.classList.add('gps-inactive');
+                status.textContent = 'Inactif';
+                document.getElementById('position').textContent = '--';
+            }
+        }
+
+        // Afficher une alerte
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            
+            setTimeout(() => {
+                alertBox.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
